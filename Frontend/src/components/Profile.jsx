@@ -12,31 +12,38 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import DefaultProfileContent from "./DefaultProfileContent";
-import Product from "./Products";
-import { useParams } from "react-router-dom";
-const COMPONENTS = {
-  dashboard: DefaultProfileContent,
-  product: Product,
+import Product from "./Product";
+import { useContext } from "react";
+import { USER_PROFILE_CONTEXT, LOGOUT_MODAL_CONTEXT } from "@/contexts";
+import { useNavigate } from "react-router-dom";
+import { Avatar } from "antd";
+const SUB_PAGES = {
+  dashboard: <DefaultProfileContent />,
+  product: <Product />,
 };
 const Profile = ({ subpage }) => {
-  const path = useParams();
-  // const query = new URLSearchParams(window.location.search);
-  // const queryParam = query.get("yourQueryParamName");
-  console.log({ subpage });
+  const { userProfile } = useContext(USER_PROFILE_CONTEXT);
+  const { setLogoutOpen } = useContext(LOGOUT_MODAL_CONTEXT);
+  const navigate = useNavigate();
+  if (!userProfile) {
+    navigate("/");
+    return;
+  }
   return (
     <div className="flex bg-gray-50 min-h-screen">
       {/* Sidebar */}
       <aside className="bg-white shadow-lg p-5 w-[300px] text-black">
         {/* Profile Section */}
         <div className="flex items-center mb-8 pt-8">
-          <img
-            src="https://via.placeholder.com/50"
-            alt="profile"
-            className="rounded-full w-12 h-12"
-          />
+          <Avatar
+            style={{ backgroundColor: "#236C13", verticalAlign: "middle" }}
+            size="large"
+          >
+            <span className="font-semibold">{userProfile.firstName[0]}</span>
+          </Avatar>
           <div className="ml-3">
-            <h2 className="font-semibold text-lg">Achonu Chioma</h2>
-            <p className="text-sm">+123-456-7890</p>
+            <h2 className="font-semibold text-lg">{userProfile.firstName}</h2>
+            <p className="text-sm">{userProfile.phoneNumbers[0].number}</p>
           </div>
         </div>
 
@@ -47,6 +54,13 @@ const Profile = ({ subpage }) => {
               <Link
                 to="/profile/dashboard"
                 className="flex items-center space-x-3 hover:bg-green p-2 rounded-lg hover:text-white"
+                style={
+                  subpage === "dashboard"
+                    ? {
+                        backgroundColor: "#236C13",
+                      }
+                    : {}
+                }
               >
                 <FontAwesomeIcon icon={faHome} />
                 <span>Dashboard</span>
@@ -54,8 +68,15 @@ const Profile = ({ subpage }) => {
             </li>
             <li>
               <Link
-                to="/product"
+                to="/profile/product"
                 className="flex items-center space-x-3 hover:bg-green p-2 rounded-lg hover:text-white"
+                style={
+                  subpage === "product"
+                    ? {
+                        backgroundColor: "#236C13",
+                      }
+                    : {}
+                }
               >
                 <FontAwesomeIcon icon={faList} />
                 <span>Products</span>
@@ -119,13 +140,15 @@ const Profile = ({ subpage }) => {
               </Link>
             </li>
             <li className="pt-10">
-              <Link
-                to="/logout"
-                className="flex items-center space-x-3 hover:bg-red-100 p-2 pt-25 rounded-lg text-red-500 hover:text-red-700"
+              <div
+                onClick={() => {
+                  setLogoutOpen(true);
+                }}
+                className="flex items-center space-x-3 hover:bg-red-100 p-2 pt-25 rounded-lg text-red-500 hover:text-red-700 cursor-pointer"
               >
                 <FontAwesomeIcon icon={faSignOutAlt} />
                 <span>Logout</span>
-              </Link>
+              </div>
             </li>
           </ul>
         </nav>
@@ -133,7 +156,12 @@ const Profile = ({ subpage }) => {
 
       {/* Main Content */}
       <main className="flex-1 p-6">
-        <DefaultProfileContent />
+        {/* Render Subpage */}
+        {subpage && SUB_PAGES[subpage] ? (
+          SUB_PAGES[subpage]
+        ) : (
+          <DefaultProfileContent />
+        )}
       </main>
     </div>
   );
